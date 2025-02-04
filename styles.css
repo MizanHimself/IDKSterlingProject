@@ -289,10 +289,23 @@ button:hover {
 
 .remove-sound-btn {
     background: var(--danger-color);
+    display: none !important; /* Force hide by default */
+    visibility: hidden; /* Add extra layer of hiding */
+    opacity: 0;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
 }
 
-.remove-sound-btn:hover {
-    background: #d90429;
+.remove-sound-btn.show {
+    display: block !important;
+    visibility: visible;
+    opacity: 1;
+    height: auto;
+    padding: 0.75rem 1.5rem;
+    margin: initial;
+    overflow: visible;
 }
 
 .sound-settings .supported-formats {
@@ -300,4 +313,194 @@ button:hover {
     color: var(--text-secondary);
     margin-bottom: 0.75rem;
     font-style: italic;
+}
+
+.error-message {
+    color: var(--danger-color);
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.main-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 400px;
+    margin: 2rem auto;
+}
+
+.menu-button {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--card-background);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    color: var(--text-primary);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    position: relative;
+}
+
+.menu-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.menu-button .icon {
+    font-size: 2rem;
+}
+
+.menu-button span {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.back-button {
+    display: inline-block;
+    margin-top: 1rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.back-button:hover {
+    color: var(--primary-color);
+}
+
+.menu-button::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.5rem 1rem;
+    background: var(--text-primary);
+    color: white;
+    font-size: 0.9rem;
+    border-radius: var(--border-radius);
+    width: max-content;
+    max-width: 300px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.menu-button:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Add a small arrow to the tooltip */
+.menu-button::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: var(--text-primary);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: -8px;
+    pointer-events: none;
+}
+
+.menu-button:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Adjust tooltip position for mobile */
+@media (max-width: 600px) {
+    .main-menu {
+        margin: 1rem auto;
+        padding: 0 1rem;
+    }
+
+    .menu-button::before {
+        font-size: 0.8rem;
+        max-width: 250px;
+    }
+}
+
+.quote-container {
+    margin-top: 3rem;
+    text-align: center;
+    padding: 2rem;
+    background: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 3rem;
+}
+
+.quote-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.quote-text {
+    font-size: 1.25rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    font-style: italic;
+}
+
+.quote-text::before {
+    content: '"';
+    font-size: 1.5em;
+    color: var(--primary-color);
+}
+
+.quote-text::after {
+    content: '"';
+    font-size: 1.5em;
+    color: var(--primary-color);
+}
+
+.quote-author {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.quote-author::before {
+    content: '— ';
+}
+
+@media (max-width: 600px) {
+    .alarm-section {
+        margin-bottom: 3rem;
+    }
+
+    .quote-container {
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+    }
+    
+    .quote-text {
+        font-size: 1.1rem;
+    }
 } 

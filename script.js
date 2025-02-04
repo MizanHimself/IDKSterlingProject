@@ -160,92 +160,133 @@ function startAlarm(alarm) {
     }
 }
 
-// Add new function to play alarm sound
+// Update the playAlarmSound function
 function playAlarmSound() {
     const sound = document.getElementById('alarmSound');
     sound.currentTime = 0;
+    sound.loop = true; // Enable looping
     
     const playPromise = sound.play();
     if (playPromise !== undefined) {
-        playPromise
-            .then(() => {
-                setTimeout(() => {
-                    sound.pause();
-                    sound.currentTime = 0;
-                    alert('Alarm!');
-                }, 3000); // Play sound for 3 seconds before showing alert
-            })
-            .catch(error => {
-                console.log('Error playing alarm:', error);
-                alert('Alarm! (Sound playback failed)');
-            });
-    }
-}
-
-// Function to handle sound upload
-function handleSoundUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-        // Validate file type
-        const validAudioTypes = [
-            'audio/mpeg',        // MP3
-            'audio/wav',         // WAV
-            'audio/ogg',         // OGG
-            'audio/aac',         // AAC
-            'audio/x-m4a',       // AAC/M4A
-            'audio/mp4'          // M4A/AAC
-        ];
-
-        if (!validAudioTypes.includes(file.type)) {
-            alert('Please upload a valid audio file (MP3, WAV, OGG, or AAC)');
-            event.target.value = '';
-            return;
-        }
-
-        // Validate file size (max 10MB)
-        if (file.size > 10 * 1024 * 1024) {
-            alert('Please upload a file smaller than 10MB');
-            event.target.value = '';
-            return;
-        }
-
-        const sound = document.getElementById('alarmSound');
-        
-        // Create object URL for preview
-        const fileURL = URL.createObjectURL(file);
-        sound.src = fileURL;
-
-        // Test if the browser can play this format
-        const playTest = sound.play();
-        if (playTest !== undefined) {
-            playTest.then(() => {
+        playPromise.then(() => {
+            // Show alert and only stop sound after user acknowledges
+            setTimeout(() => {
+                alert('Alarm!');
+                sound.loop = false;
                 sound.pause();
                 sound.currentTime = 0;
-                
-                // If playable, store the sound
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        localStorage.setItem('customAlarmSound', e.target.result);
-                        localStorage.setItem('customAlarmType', file.type);
-                    } catch (e) {
-                        if (e.name === 'QuotaExceededError') {
-                            alert('The audio file is too large to save. The default sound will be used instead.');
-                            resetToDefaultSound();
-                        }
-                    }
-                };
-                reader.readAsDataURL(file);
-            }).catch(() => {
-                alert('Your browser cannot play this audio format. Please try another file.');
-                resetToDefaultSound();
-                event.target.value = '';
-            });
-        }
+            }, 100); // Small delay to ensure sound starts playing
+        }).catch(error => {
+            console.log('Error playing alarm:', error);
+            alert('Alarm! (Sound playback failed)');
+        });
     }
 }
 
-// Function to reset to default sound
+// Add this helper function for showing errors
+function showError(message) {
+    const errorElement = document.getElementById('soundError');
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.classList.add('show');
+        setTimeout(() => {
+            errorElement.classList.remove('show');
+        }, 3000); // Hide after 3 seconds
+    }
+}
+
+// Add this helper function to check if there's a custom sound
+function hasCustomSound() {
+    const savedSound = localStorage.getItem('customAlarmSound');
+    const savedType = localStorage.getItem('customAlarmType');
+    return !!(savedSound && savedType);
+}
+
+// Function to add remove button
+function showRemoveButton() {
+    const container = document.getElementById('remove-sound-container');
+    if (container) {
+        container.innerHTML = `
+            <button onclick="removeCustomSound()" class="remove-sound-btn">Remove Custom Sound</button>
+        `;
+    }
+}
+
+// Function to remove the button
+function hideRemoveButton() {
+    const container = document.getElementById('remove-sound-container');
+    if (container) {
+        container.innerHTML = '';
+    }
+}
+
+// Update handleSoundUpload function
+function handleSoundUpload(event) {
+    const file = event.target.files[0];
+    const errorElement = document.getElementById('soundError');
+    
+    // Clear any existing error message
+    if (errorElement) {
+        errorElement.classList.remove('show');
+    }
+
+    // Hide remove button by default
+    hideRemoveButton();
+
+    if (!file) {
+        resetToDefaultSound();
+        return;
+    }
+
+    // Convert file size to MB for easier comparison
+    const fileSizeInMB = file.size / (1024 * 1024);
+
+    // Validate file size (max 5MB)
+    if (fileSizeInMB > 5) {
+        showError(`File size (${fileSizeInMB.toFixed(1)} MB) exceeds the 5MB limit`);
+        event.target.value = '';
+        resetToDefaultSound();
+        return;
+    }
+
+    const sound = document.getElementById('alarmSound');
+    
+    // Create object URL for preview
+    const fileURL = URL.createObjectURL(file);
+    sound.src = fileURL;
+
+    // Test if the browser can play this format
+    const playTest = sound.play();
+    if (playTest !== undefined) {
+        playTest.then(() => {
+            sound.pause();
+            sound.currentTime = 0;
+            
+            // If playable, store the sound and show remove button
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    localStorage.setItem('customAlarmSound', e.target.result);
+                    localStorage.setItem('customAlarmType', file.type);
+                    showRemoveButton();
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError') {
+                        showError('File is too large to save in browser storage');
+                        resetToDefaultSound();
+                        event.target.value = '';
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
+        }).catch(() => {
+            showError('This audio format is not supported');
+            resetToDefaultSound();
+            event.target.value = '';
+        });
+    }
+}
+
+// Update resetToDefaultSound function
 function resetToDefaultSound() {
     const sound = document.getElementById('alarmSound');
     
@@ -255,28 +296,31 @@ function resetToDefaultSound() {
         Your browser does not support the audio element.
     `;
     
+    hideRemoveButton();
+    
     // Clear stored custom sound
     localStorage.removeItem('customAlarmSound');
     localStorage.removeItem('customAlarmType');
 }
 
-// Function to test the current sound
+// Update the testSound function
 function testSound() {
     const sound = document.getElementById('alarmSound');
     sound.currentTime = 0;
+    sound.loop = true;
     
     const playPromise = sound.play();
     if (playPromise !== undefined) {
-        playPromise
-            .then(() => {
-                setTimeout(() => {
-                    sound.pause();
-                    sound.currentTime = 0;
-                }, 2000);
-            })
-            .catch(error => {
-                alert('Error playing sound. Please try again.');
-            });
+        playPromise.then(() => {
+            // Play for 3 seconds for testing
+            setTimeout(() => {
+                sound.loop = false;
+                sound.pause();
+                sound.currentTime = 0;
+            }, 3000); // 3 seconds test duration
+        }).catch(error => {
+            showError('Error playing sound. Please try again.');
+        });
     }
 }
 
@@ -335,25 +379,32 @@ function removeCustomSound() {
     alert('Custom sound removed. Default alarm sound will be used.');
 }
 
-// Initialize the app
+// Hide remove button on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const removeButton = document.querySelector('.remove-sound-btn');
+    if (removeButton) {
+        removeButton.classList.remove('show');
+    }
+});
+
+// Update the window.onload function
 window.onload = () => {
     renderTasks();
     renderAlarms();
     
-    // Load saved custom sound if exists
-    const savedSound = localStorage.getItem('customAlarmSound');
-    const savedType = localStorage.getItem('customAlarmType');
-    if (savedSound && savedType) {
+    // Only try to load custom sound if it exists
+    if (hasCustomSound()) {
         const sound = document.getElementById('alarmSound');
         try {
-            sound.src = savedSound;
+            sound.src = localStorage.getItem('customAlarmSound');
             
-            // Test if the saved sound is still playable
+            // Only show remove button if sound loads successfully
             const playTest = sound.play();
             if (playTest !== undefined) {
                 playTest.then(() => {
                     sound.pause();
                     sound.currentTime = 0;
+                    showRemoveButton();
                 }).catch(() => {
                     console.log('Saved sound format no longer supported');
                     resetToDefaultSound();
