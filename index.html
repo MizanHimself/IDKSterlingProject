@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Task Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Personal Task Manager</h1>
+        </header>
+
+        <div class="alarm-section">
+            <h2>Alarm</h2>
+            <audio id="alarmSound">
+                <source src="alarm-sound.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+            <div class="sound-settings">
+                <label for="customSound">Custom Alarm Sound:</label>
+                <input type="file" id="customSound" 
+                    accept="audio/*"
+                    onchange="handleSoundUpload(event)">
+                <div class="supported-formats">Supported formats: MP3, WAV, OGG, AAC</div>
+                <div class="sound-controls">
+                    <button onclick="testSound()" class="test-sound-btn">Test Sound</button>
+                    <button onclick="removeCustomSound()" class="remove-sound-btn">Remove Custom Sound</button>
+                </div>
+            </div>
+            <div class="alarm-controls">
+                <input type="datetime-local" id="alarmTime">
+                <button onclick="setAlarm()">Set Alarm</button>
+            </div>
+            <div id="activeAlarms"></div>
+        </div>
+
+        <div class="todo-section">
+            <h2>To-Do List</h2>
+            <div class="add-task">
+                <input type="text" id="taskInput" placeholder="Enter a new task">
+                <select id="prioritySelect">
+                    <option value="high">High Priority</option>
+                    <option value="medium">Medium Priority</option>
+                    <option value="low">Low Priority</option>
+                </select>
+                <button onclick="addTask()">Add Task</button>
+            </div>
+            <div id="taskList"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
